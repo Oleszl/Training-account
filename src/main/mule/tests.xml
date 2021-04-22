@@ -125,4 +125,19 @@ output application/json
 }]]]></http:uri-params>
 		</http:request>
 	</flow>
+	<flow name="Copy_of_testGetAllAccounts" doc:id="f78d9c9f-06d6-4c12-8b58-7aec4846ec09" >
+		<http:listener doc:name="Copy_of_Listener" doc:id="f70f5a41-ff6d-4dd8-9bd5-ba1adfaa9906" config-ref="HTTP_TEST_Listener" path="/testGetAllAccounts" />
+		<http:request method="GET" doc:name="Copy_of_Request" doc:id="fd7cb672-e0d5-4270-890a-26eb2990c3b7" config-ref="HTTP_Request_configuration" path="/accounts" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Requester-ID" : "1"
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"type" : "personal"
+}]]]></http:query-params>
+		</http:request>
+	</flow>
 </mule>
