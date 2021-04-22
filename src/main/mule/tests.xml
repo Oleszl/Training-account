@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_TEST_Listener" doc:name="HTTP Listener config" doc:id="1a6d148e-07af-4a7e-b3ad-349ac728899e" >
+		<http:listener-connection host="0.0.0.0" port="9090" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="526acd2c-1ddd-41a8-b4b0-695c75ac1123" basePath="/api" >
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<flow name="testGetAllAccounts" doc:id="cda93db8-6521-4856-8456-c20216f14ab1" >
+		<http:listener doc:name="Listener" doc:id="ddb71427-c0a9-4dba-89ac-a0a9f9dc7698" config-ref="HTTP_TEST_Listener" path="/testGetAllAccounts"/>
+		<http:request method="GET" doc:name="Request" doc:id="bb950c51-1595-41af-addd-480d342dffac" config-ref="HTTP_Request_configuration" path="/accounts">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Requester-ID" : "1"
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"type" : "personal"
+}]]]></http:query-params>
+		</http:request>
+	</flow>
+	<flow name="testGetAccountById" doc:id="0593fba7-5ba5-46e6-82ed-88648975b63c" >
+		<http:listener doc:name="Listener" doc:id="5890e582-597f-40c5-9f6d-0a6a7dddbc81" config-ref="HTTP_TEST_Listener" path="/testGetAccountById"/>
+		<http:request method="GET" doc:name="Request" doc:id="8e93a0fb-6479-421e-bc2f-347c5ccbbc3d" config-ref="HTTP_Request_configuration" path="/accounts/{id}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Requester-ID" : "1"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : "4400"
+}]]]></http:uri-params>
+		</http:request>
+	</flow>
+	<flow name="testDeleteAccountById" doc:id="83f12e77-dfcd-425d-a745-d34f1997d6d2" >
+		<http:listener doc:name="Listener" doc:id="b13231f4-538f-4f49-8db3-8aba087405b3" config-ref="HTTP_TEST_Listener" path="/testDeleteAccountById" />
+		<http:request method="DELETE" doc:name="Request" doc:id="5ff88839-3a01-454c-b1ea-79bba8be8d60" config-ref="HTTP_Request_configuration" path="/accounts/{id}" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Requester-ID" : "1"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : "4400"
+}]]]></http:uri-params>
+		</http:request>
+	</flow>
+	<flow name="testPostAccount" doc:id="2de471c0-ef0f-4b14-b3b2-3983c36d3100" >
+		<http:listener doc:name="Listener" doc:id="b71bda3a-03d4-41fd-a87a-aadf9ffee730" config-ref="HTTP_TEST_Listener" path="/testPostAccount" />
+		<ee:transform doc:name="Transform Message" doc:id="89ba4d13-eeaa-47da-9462-aa68d009d45e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    "address": "123 Main St., Dallas TX",
+    "country": "USA",
+    "firstName": "John",
+    "lastName": "Doe",
+    "miles": 999,
+    "postal": "77777",
+    "type": "personal"
+  },
+  {
+    "address": "10 Downing St., San Francisco CA",
+    "country": "USA",
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "miles": 101,
+    "postal": "89897",
+    "type": "business"
+  }
+]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="1eedc95b-034e-4464-81ec-2d3285684850" config-ref="HTTP_Request_configuration" path="/accounts" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Requester-ID" : "1"
+}]]]></http:headers>
+		</http:request>
+	</flow>
+	<flow name="PutAccountById" doc:id="77185d75-062c-41df-b1db-cca472be3f2b" >
+		<http:listener doc:name="Listener" doc:id="9e5bf2c4-cd93-4579-96e2-4c04d601a802" config-ref="HTTP_TEST_Listener" path="/testPutAccountById" />
+		<set-payload value='#[output application/json &#10;---&#10;{&#10;    "address": "123 Main St., Dallas TX",&#10;    "country": "USA",&#10;    "firstName": "John",&#10;    "lastName": "Doe",&#10;    "miles": 999,&#10;    "postal": "77777",&#10;    "type": "personal"&#10;  }]' doc:name="Set Payload" doc:id="08c2c6bb-ab9f-4c29-a09a-07e776a0302e" />
+		<http:request method="PUT" doc:name="Request" doc:id="1fe2fd62-631e-40b7-be14-833f998691c3" config-ref="HTTP_Request_configuration" path="/accounts/{id}" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Requester-ID" : "1"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : "4400"
+}]]]></http:uri-params>
+		</http:request>
+	</flow>
+	<flow name="PatchAccountById" doc:id="590890ab-6b33-4b17-afde-0985f0c9d7ad" >
+		<http:listener doc:name="Listener" doc:id="296493b1-18e5-4382-b8a5-f65fee1c2f36" config-ref="HTTP_TEST_Listener" path="/testPatchAccountById" />
+		<set-payload value='#[output application/json &#10;---&#10;{&#10;    "address": "123 Main St., Dallas TX",&#10;    "country": "USA",&#10;    "firstName": "John",&#10;    "lastName": "Doe",&#10;    "miles": 999,&#10;    "postal": "77777",&#10;    "type": "personal"&#10;  }]' doc:name="Payload" doc:id="af0bba66-2a4b-49e2-b829-b84770e20aa9" />
+		<http:request method="PATCH" doc:name="Request" doc:id="2d289a38-f515-481e-928c-04f8b5183057" config-ref="HTTP_Request_configuration" path="/accounts/{id}" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Requester-ID" : "1"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : "4400"
+}]]]></http:uri-params>
+		</http:request>
+	</flow>
+</mule>

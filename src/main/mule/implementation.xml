@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1c485b41-ae04-461b-9dbf-b30a37e9bb93" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="42ef52cc-68c8-4b73-b083-dedb917cf398" >
+		<db:my-sql-connection host="mudb.learn.mulesoft.com" port="3306" user="mule" password="mule" database="training" />
+	</db:config>
+	<flow name="getAccount" doc:id="2568076f-da45-4633-9852-d7b0e25fee6c" >
+		<db:select doc:name="Select" doc:id="ccf61096-c81f-4a2f-aa9d-260b06c89ba3" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT *
+FROM flights_customers
+WHERE accountType = :accountType]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'accountType': attributes.queryParams."type"}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="1dace496-719d-47ef-9194-976945ac4201" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import substringBefore , substringAfter from dw::core::Strings
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	id: payload01.accountID default "",
+	firstName: payload01.name default "" substringBefore " ",
+	lastName: payload01.name default "" substringAfter " ",
+	address: ((payload01.street default "") ++ " " ++ (payload01.city default "")) ++ " " ++ (payload01.state default ""),
+	postal: payload01.postal default "",
+	country: payload01.country default "",
+	creationDate: payload01.creationDate as String default "",
+	accountType: payload01.accountType default "",
+	miles: payload01.miles default 0
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="08f3ab5e-f9d3-4cb1-bccd-5ebaa907b26b" />
+	</flow>
+	<flow name="postAccount" doc:id="050b387c-0702-43dd-be40-ceaa7bb06e25" >
+		<set-payload value='{"message": "account added (but not really)"}' doc:name="Set Payload" doc:id="3d33095f-2b85-4806-89a5-5e291cb1e9d5" />
+	</flow>
+	<flow name="getAccountById" doc:id="3dfefea5-53eb-4821-9c4f-1132fe858e50" >
+		<db:select doc:name="Copy_of_Select" doc:id="528aefac-f3c9-4dbe-bf9c-52922c1c9ac8" config-ref="Database_Config" >
+			<db:sql ><![CDATA[SELECT *
+FROM flights_customers
+WHERE accountID = :accountID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'accountID': attributes.uriParams.id}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Copy_of_Transform Message" doc:id="1852c1ea-6593-4ea4-ad58-1df4f67b932e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import substringBefore , substringAfter from dw::core::Strings
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	id: payload01.accountID default "",
+	firstName: payload01.name default "" substringBefore " ",
+	lastName: payload01.name default "" substringAfter " ",
+	address: ((payload01.street default "") ++ " " ++ (payload01.city default "")) ++ " " ++ (payload01.state default ""),
+	postal: payload01.postal default "",
+	country: payload01.country default "",
+	creationDate: payload01.creationDate as String default "",
+	accountType: payload01.accountType default "",
+	miles: payload01.miles default 0
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="76d75dc6-f2f5-4799-95e4-4d34934a8bd6" />
+	</flow>
+	<flow name="deleteAccountById" doc:id="cc93d084-dcfc-4be3-8bc2-de0e4ee04d14" >
+		<set-payload value='{"message": "account deleted (but not really)"}' doc:name="Copy_of_Set Payload" doc:id="d5f797ae-7d67-4a4d-9bf4-db4c65c00a15" />
+	</flow>
+	<flow name="putAccountById" doc:id="933fcf19-4680-40d7-b850-49ed280f3e89" >
+		<set-payload value='{"message": "account replaced (but not really)"}' doc:name="Copy_of_Copy_of_Set Payload" doc:id="3fe51497-3d64-4c81-a037-733d10b91ac3" />
+	</flow>
+	<flow name="patchAccountById" doc:id="dd672850-c803-4b98-bb56-0886aa107a68" >
+		<set-payload value='{"message": "account modified  (but not really)"}' doc:name="Copy_of_Copy_of_Copy_of_Set Payload" doc:id="e0ba76eb-dd7b-4bd2-9f9b-c92cff70f72d" />
+	</flow>
+</mule>
